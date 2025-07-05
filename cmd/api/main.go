@@ -49,7 +49,9 @@ func main(){
 	protected:=api.Group("/").Use(authService.AuthMiddleware())
 	{
 		protected.POST("/complaints",authService.RoleAuthMiddleware("user"),complaintHandler.Create)
-		
+		protected.GET("/mycomplaints",authService.RoleAuthMiddleware("user"),complaintHandler.GetMyComplaints)
+		protected.PATCH("/promoteuser",authService.RoleAuthMiddleware("admin"),userHandler.PromoteUser)
+
 	}
 	}
 	r.Run()

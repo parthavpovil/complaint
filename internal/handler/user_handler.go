@@ -99,3 +99,7 @@ func (h *UserHandler) Login(c *gin.Context) {
 		"token":   tokenString,
 	})
 }
+
+func(h *UserHandler) PromoteUser(c *gin.Context){
+	
+}
