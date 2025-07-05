@@ -91,7 +91,7 @@ func (s *AuthService) AuthMiddleware() gin.HandlerFunc {
 }
 
 // RoleAuthMiddleware is also a method on AuthService for consistency.
-func (s *AuthService) RoleAuthMiddleware(requiredRole string) gin.HandlerFunc {
+func (s *AuthService) RoleAuthMiddleware(requiredRole ...string) gin.HandlerFunc {
 	return func(c *gin.Context) {
 		userRole_i, exists := c.Get("userRole")
 		if !exists {
@@ -99,10 +99,15 @@ func (s *AuthService) RoleAuthMiddleware(requiredRole string) gin.HandlerFunc {
 			return
 		}
 		userRole := userRole_i.(string)
-		if userRole != requiredRole {
-			c.AbortWithStatusJSON(http.StatusForbidden, gin.H{"error": "You are not authorized to perform this action"})
-			return
+		for _, roles:= range requiredRole{
+			if roles==userRole{
+				c.Next()
+				return
+			}
+
 		}
-		c.Next()
+		
+		c.AbortWithStatusJSON(http.StatusForbidden, gin.H{"error": "You are not authorized to perform this action"})
+		
 	}
 }

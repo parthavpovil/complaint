@@ -100,6 +100,41 @@ func (h *UserHandler) Login(c *gin.Context) {
 	})
 }
 
-func(h *UserHandler) PromoteUser(c *gin.Context){
-	
+func(h *UserHandler) UpdateUser(c *gin.Context){
+
+	userID:=c.Param("id")
+	var newrole models.UpdateRoleRequest
+
+	err:=c.BindJSON(&newrole)
+	if err!=nil{
+		c.JSON(http.StatusUnauthorized, gin.H{"error": "Error reading new role from body"})
+		return
+	}
+	if newrole.Role=="admin" ||newrole.Role=="user"{
+		c.JSON(http.StatusBadRequest,gin.H{"message":"role can be offical"})
+		return
+	}
+	query:=`UPDATE users SET role=$1 WHERE id=$2`
+
+	result,err:=h.DB.Exec(query,newrole.Role,userID)
+	if err!=nil{
+		c.JSON(http.StatusInternalServerError,gin.H{"message":"failed to update role","error":err.Error()})
+		return
+	}
+
+	rowsAffected,err:=result.RowsAffected()
+	if err!=nil{
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to check affected rows", "details": err.Error()})
+		return
+	}
+	if rowsAffected == 0 {
+		c.JSON(http.StatusNotFound, gin.H{"error": "User not found with the specified ID"})
+		return
+	}
+
+	c.JSON(http.StatusOK,gin.H{"message":"user role updated succesfuuly",
+								"userid":userID,
+								"role":newrole.Role,})
+
+
 }

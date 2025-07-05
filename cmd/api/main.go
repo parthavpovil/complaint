@@ -42,17 +42,20 @@ func main(){
 	})
 	api:=r.Group("/api/v1")
 	{
-	api.POST("/register",userHandler.Register)
-	api.POST("/login",userHandler.Login)
+		api.POST("/register",userHandler.Register)
+		api.POST("/login",userHandler.Login)
+		api.GET("/allcomplaints",authService.AuthMiddleware(),authService.RoleAuthMiddleware("admin","official"),complaintHandler.GetAllComplaints)
 
+		protected:=api.Group("/").Use(authService.AuthMiddleware())
+		{
+			protected.POST("/complaints",authService.RoleAuthMiddleware("user"),complaintHandler.Create)
+			protected.GET("/complaints/my",authService.RoleAuthMiddleware("user"),complaintHandler.GetMyComplaints)
 
-	protected:=api.Group("/").Use(authService.AuthMiddleware())
-	{
-		protected.POST("/complaints",authService.RoleAuthMiddleware("user"),complaintHandler.Create)
-		protected.GET("/mycomplaints",authService.RoleAuthMiddleware("user"),complaintHandler.GetMyComplaints)
-		protected.PATCH("/promoteuser",authService.RoleAuthMiddleware("admin"),userHandler.PromoteUser)
-
-	}
+		}
+		adminroutes:=api.Group("/admin").Use(authService.AuthMiddleware())
+		{
+			adminroutes.POST("users/:id/role",authService.RoleAuthMiddleware(),userHandler.UpdateUser)
+		}
 	}
 	r.Run()
 }

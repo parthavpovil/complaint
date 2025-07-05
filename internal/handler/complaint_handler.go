@@ -54,3 +54,17 @@ func(h *ComplaintHandler)GetMyComplaints(c *gin.Context){
 		"data":complaints,
 	})
 }
+
+func (h *ComplaintHandler)GetAllComplaints(c *gin.Context)  {
+	var complaints []models.Complaint
+	query:=`SELECT * FROM complaints`
+	err:=h.DB.Select(&complaints,query)
+	if err!=nil{
+		c.JSON(http.StatusInternalServerError,gin.H{"error":err.Error()})
+		return
+	}
+	c.JSON(http.StatusOK,gin.H{"message":"complaints retrived sucessfully","complaints":complaints,})			
+
+
+	
+}

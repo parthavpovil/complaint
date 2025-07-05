@@ -21,3 +21,7 @@ type LoginRequest struct{
 	 Email    string `json:"email" binding:"required,email"` // Essential for login/uniqueness
     Password string `json:"password"binding:"required,min=8"`
 }
+
+type UpdateRoleRequest struct {
+	Role string `json:"role" binding:"required"`
+}
