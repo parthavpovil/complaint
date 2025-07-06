@@ -54,7 +54,11 @@ func main(){
 		}
 		adminroutes:=api.Group("/admin").Use(authService.AuthMiddleware())
 		{
-			adminroutes.POST("users/:id/role",authService.RoleAuthMiddleware(),userHandler.UpdateUser)
+			adminroutes.POST("users/:id/role",authService.RoleAuthMiddleware("admin"),userHandler.UpdateUser)
+		}
+		officialroutes:=api.Group("/official").Use(authService.AuthMiddleware(),authService.RoleAuthMiddleware("official"))
+		{
+			officialroutes.POST("/complaints/:id/updates",complaintHandler.AddUpdate)
 		}
 	}
 	r.Run()

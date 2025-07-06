@@ -111,7 +111,7 @@ func(h *UserHandler) UpdateUser(c *gin.Context){
 		return
 	}
 	if newrole.Role=="admin" ||newrole.Role=="user"{
-		c.JSON(http.StatusBadRequest,gin.H{"message":"role can be offical"})
+		c.JSON(http.StatusBadRequest,gin.H{"message":"role can be official"})
 		return
 	}
 	query:=`UPDATE users SET role=$1 WHERE id=$2`

@@ -13,9 +13,12 @@ type Complaint struct {
     Status      string    `db:"status" json:"status"`
     CreatedAt   time.Time `db:"created_at" json:"created_at"`
     UpdatedAt   time.Time `db:"updated_at" json:"updated_at"`
-    Evidence    string    `db:"evidence" json:"evidence"` // <-- Add this line
+    Evidence    string    `db:"evidence" json:"evidence"`
+    Location    *string   `db:"location" json:"location"`  // PostGIS geography type
+    Latitude    float64   `json:"latitude" binding:"required,latitude"`
+    Longitude   float64   `json:"longitude" binding:"required,longitude"`
+	IsPublic 	bool		`json:"ispublic" db:"is_public"`
 }
-
 
 // CreateComplaintRequest is the structure for a new complaint request.
 type CreateComplaintRequest struct {
@@ -23,4 +26,9 @@ type CreateComplaintRequest struct {
 	Description string `json:"description" binding:"required,min=10"`
 	Category    string `json:"category" binding:"required"`
 	Evidence	string `json:"evidence"`
+	Latitude    float64 `json:"latitude" binding:"required,latitude"`
+	Longitude   float64 `json:"longitude" binding:"required,longitude"`
+	IsPublic 	bool		`json:"is_public" `
+
+
 }
