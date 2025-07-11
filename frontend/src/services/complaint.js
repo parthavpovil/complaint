@@ -33,5 +33,21 @@ export const complaintService = {
         } catch (error) {
             throw error.response?.data || error.message;
         }
+    },
+
+    getFilteredComplaints: async (filters) => {
+        try {
+            // Always use the filtered endpoint to maintain consistent response structure
+            const params = new URLSearchParams();
+            if (filters.district) params.append('district', filters.district);
+            if (filters.category) params.append('category', filters.category);
+            if (filters.status) params.append('status', filters.status);
+            if (filters.userId) params.append('userid', filters.userId);
+
+            const response = await complaintAxios.get(`${API_URL}/complaints?${params}`);
+            return response.data;
+        } catch (error) {
+            throw error.response?.data || error.message;
+        }
     }
 };

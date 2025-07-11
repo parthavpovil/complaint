@@ -30,12 +30,16 @@ export const authService = {
             // Decode the JWT token to get user information
             const decodedToken = jwtDecode(response.data.token);
             
-            // Create a user object from the token data
+            // Create a user object combining token data and response data
             const user = {
                 id: decodedToken.user_id,
                 role: decodedToken.role,
-                email: email
+                email: response.data.user.email,
+                name: response.data.user.name
             };
+            
+            // Store the complete user data in localStorage
+            localStorage.setItem('user', JSON.stringify(user));
             
             return {
                 token: response.data.token,
@@ -59,5 +63,37 @@ export const authService = {
     getCurrentUser: () => {
         const userStr = localStorage.getItem('user');
         return userStr ? JSON.parse(userStr) : null;
-    }
+    },
+
+    getAllUsers: async () => {
+        try {
+            const response = await authAxios.get(`${API_URL}/admin/users`);
+            return response.data;
+        } catch (error) {
+            throw error.response?.data || error.message;
+        }
+    },
+
+    getAllOfficials: async () => {
+        try {
+            const response = await authAxios.get(`${API_URL}/admin/officials`);
+            return response.data;
+        } catch (error) {
+            throw error.response?.data || error.message;
+        }
+    },
+
+    updateUserRole: async (userId, role) => {
+        try {
+            const response = await authAxios.post(`${API_URL}/admin/users/${userId}/role`, {
+                role: "official" // Backend only allows setting role to "official"
+            });
+            return response.data;
+        } catch (error) {
+            if (error.response?.status === 400) {
+                throw new Error("Cannot update to this role. Only 'official' role is allowed.");
+            }
+            throw error.response?.data || error.message;
+        }
+    },
 };
