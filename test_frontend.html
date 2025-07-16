@@ -1,0 +1,41 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Test Frontend APIs</title>
+</head>
+<body>
+    <h1>Frontend API Test</h1>
+    <div id="results"></div>
+    
+    <script>
+        const API_URL = 'http://localhost:8080/api/v1';
+        
+        // Test function
+        async function testAPI() {
+            const resultsDiv = document.getElementById('results');
+            
+            try {
+                // Test categories
+                const categoriesResponse = await fetch(`${API_URL}/categories`);
+                const categoriesData = await categoriesResponse.json();
+                resultsDiv.innerHTML += `<h3>Categories:</h3><pre>${JSON.stringify(categoriesData, null, 2)}</pre>`;
+                
+                // Test with the fresh token
+                const complaintsResponse = await fetch(`${API_URL}/complaints/my`, {
+                    headers: {
+                        'Authorization': 'Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VyX2lkIjo5LCJyb2xlIjoidXNlciIsImV4cCI6MTc1MjkxNTQwMn0.Y5C-jyGSORgmYOaS4yUJbLEtOIsCcWQb_-HV4h5bYPQ'
+                    }
+                });
+                const complaintsData = await complaintsResponse.json();
+                resultsDiv.innerHTML += `<h3>Complaints:</h3><pre>${JSON.stringify(complaintsData, null, 2)}</pre>`;
+                
+            } catch (error) {
+                resultsDiv.innerHTML += `<h3>Error:</h3><pre>${error.message}</pre>`;
+            }
+        }
+        
+        // Test on page load
+        testAPI();
+    </script>
+</body>
+</html>

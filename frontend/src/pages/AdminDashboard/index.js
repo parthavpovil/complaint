@@ -34,19 +34,6 @@ import LogoutIcon from '@mui/icons-material/Logout';
 import FilterListIcon from '@mui/icons-material/FilterList';
 import PersonAddIcon from '@mui/icons-material/PersonAdd';
 
-const categories = [
-  'Roads & Pavement',
-  'Water Supply & Leaks',
-  'Electricity & Streetlights',
-  'Waste & Sanitation',
-  'Public Transport & Bus Stops',
-  'Public Health Issues',
-  'Parks & Public Spaces',
-  'Illegal Construction/Encroachment',
-  'Stray Animal Nuisance',
-  'Others'
-];
-
 const districts = [
   'Ernakulam',
   'Thiruvananthapuram',
@@ -68,6 +55,7 @@ function AdminDashboard() {
   const [complaints, setComplaints] = useState([]);
   const [users, setUsers] = useState([]);
   const [officials, setOfficials] = useState([]);
+  const [categories, setCategories] = useState([]);
   const [filters, setFilters] = useState({
     district: '',
     category: '',
@@ -88,6 +76,16 @@ function AdminDashboard() {
       setLoading(false);
     }
   }, [filters]);
+
+  const fetchCategories = useCallback(async () => {
+    try {
+      const response = await complaintService.getCategories();
+      setCategories(response.data || []);
+    } catch (err) {
+      console.error('Error fetching categories:', err);
+      // Don't set error for categories as it's not critical
+    }
+  }, []);
 
   const fetchUsers = async () => {
     setLoadingUsers(true);
@@ -131,11 +129,12 @@ function AdminDashboard() {
   useEffect(() => {
     if (activeTab === 0) {
       fetchComplaints();
+      fetchCategories();
     } else {
       fetchUsers();
       fetchOfficials();
     }
-  }, [activeTab]);
+  }, [activeTab, fetchComplaints, fetchCategories]);
 
   const handleFilterChange = (event) => {
     const { name, value } = event.target;
@@ -171,6 +170,11 @@ function AdminDashboard() {
       setError('Failed to update user role. Please try again later.');
       console.error('Error updating user role:', err);
     }
+  };
+
+  const getCategoryName = (categoryId) => {
+    const category = categories.find(cat => cat.id === categoryId);
+    return category ? category.name : `Category ${categoryId}`;
   };
 
   return (
@@ -292,8 +296,8 @@ function AdminDashboard() {
                     >
                       <MenuItem value="">All Categories</MenuItem>
                       {categories.map(category => (
-                        <MenuItem key={category} value={category}>
-                          {category}
+                        <MenuItem key={category.id} value={category.id}>
+                          {category.name}
                         </MenuItem>
                       ))}
                     </Select>
@@ -323,7 +327,7 @@ function AdminDashboard() {
                   Complaints List
                 </Typography>
 
-                {loadingOfficials ? (
+                {loading ? (
                   <Box display="flex" justifyContent="center" p={3}>
                     <CircularProgress />
                   </Box>
@@ -339,7 +343,7 @@ function AdminDashboard() {
                           <TableCell>Title</TableCell>
                           <TableCell>Category</TableCell>
                           <TableCell>Status</TableCell>
-                          <TableCell>District</TableCell>
+                          <TableCell>Location</TableCell>
                           <TableCell>Created At</TableCell>
                         </TableRow>
                       </TableHead>
@@ -356,7 +360,7 @@ function AdminDashboard() {
                                   : 'No description'}
                               </Typography>
                             </TableCell>
-                            <TableCell>{complaint.category || 'N/A'}</TableCell>
+                            <TableCell>{getCategoryName(complaint.category)}</TableCell>
                             <TableCell>
                               <Chip
                                 label={complaint.status ? (
@@ -369,7 +373,18 @@ function AdminDashboard() {
                                 size="small"
                               />
                             </TableCell>
-                            <TableCell>{complaint.district || 'N/A'}</TableCell>
+                            <TableCell>
+                              <Typography variant="caption">
+                                {complaint.latitude && complaint.longitude ? (
+                                  <>
+                                    Lat: {Number(complaint.latitude).toFixed(6)}<br />
+                                    Long: {Number(complaint.longitude).toFixed(6)}
+                                  </>
+                                ) : (
+                                  'Location not available'
+                                )}
+                              </Typography>
+                            </TableCell>
                             <TableCell>
                               {complaint.created_at ? 
                                 new Date(complaint.created_at).toLocaleDateString() 

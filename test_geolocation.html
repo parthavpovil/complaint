@@ -1,0 +1,65 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Geolocation Test</title>
+</head>
+<body>
+    <h1>Geolocation Test</h1>
+    <button onclick="getCurrentLocation()">Get Current Location</button>
+    <div id="location-result"></div>
+    
+    <script>
+        function getCurrentLocation() {
+            const resultDiv = document.getElementById('location-result');
+            
+            if (!navigator.geolocation) {
+                resultDiv.innerHTML = 'Geolocation is not supported by this browser.';
+                return;
+            }
+
+            resultDiv.innerHTML = 'Getting location...';
+            
+            navigator.geolocation.getCurrentPosition(
+                (position) => {
+                    const lat = position.coords.latitude;
+                    const lon = position.coords.longitude;
+                    resultDiv.innerHTML = `
+                        <h3>Location found:</h3>
+                        <p>Latitude: ${lat}</p>
+                        <p>Longitude: ${lon}</p>
+                        <p>Accuracy: ${position.coords.accuracy} meters</p>
+                    `;
+                },
+                (error) => {
+                    let errorMessage = '';
+                    switch(error.code) {
+                        case error.PERMISSION_DENIED:
+                            errorMessage = "User denied the request for Geolocation.";
+                            break;
+                        case error.POSITION_UNAVAILABLE:
+                            errorMessage = "Location information is unavailable.";
+                            break;
+                        case error.TIMEOUT:
+                            errorMessage = "The request to get user location timed out.";
+                            break;
+                        default:
+                            errorMessage = "An unknown error occurred.";
+                            break;
+                    }
+                    resultDiv.innerHTML = `<p style="color: red;">Error: ${errorMessage}</p>`;
+                },
+                {
+                    enableHighAccuracy: true,
+                    timeout: 5000,
+                    maximumAge: 0
+                }
+            );
+        }
+        
+        // Auto-run on page load
+        window.onload = function() {
+            getCurrentLocation();
+        };
+    </script>
+</body>
+</html>

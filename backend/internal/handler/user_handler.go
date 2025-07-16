@@ -1,7 +1,7 @@
 package handler
 
 import (
-	"complain/internal/models" // Make sure your module name is correct
+	"complain/internal/models" // Make s	query := `SELECT id, name, email, role, password_hash FROM users WHERE email=$1`re your module name is correct
 	"database/sql"
 	"net/http"
 
@@ -97,33 +97,57 @@ func (h *UserHandler) Login(c *gin.Context) {
 	c.JSON(http.StatusOK, gin.H{
 		"message": "Successfully logged in",
 		"token":   tokenString,
+		"user": gin.H{
+			"id":    user.ID,
+			"name":  user.Name,
+			"email": user.Email,
+			"role":  user.Role,
+		},
 	})
 }
 
-func(h *UserHandler) UpdateUser(c *gin.Context){
+func (h *UserHandler) GetAllUsers(c *gin.Context) {
+	var users []models.User
+	query := `SELECT id, name, email, role FROM users WHERE role != 'admin'` // Exclude admin users for security
 
-	userID:=c.Param("id")
+	err := h.DB.Select(&users, query)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{
+			"error":   "Failed to fetch users",
+			"details": err.Error(),
+		})
+		return
+	}
+
+	c.JSON(http.StatusOK, gin.H{
+		"users": users,
+	})
+}
+
+func (h *UserHandler) UpdateUser(c *gin.Context) {
+
+	userID := c.Param("id")
 	var newrole models.UpdateRoleRequest
 
-	err:=c.BindJSON(&newrole)
-	if err!=nil{
+	err := c.BindJSON(&newrole)
+	if err != nil {
 		c.JSON(http.StatusUnauthorized, gin.H{"error": "Error reading new role from body"})
 		return
 	}
-	if newrole.Role=="admin" ||newrole.Role=="user"{
-		c.JSON(http.StatusBadRequest,gin.H{"message":"role can be official"})
+	if newrole.Role == "admin" || newrole.Role == "user" {
+		c.JSON(http.StatusBadRequest, gin.H{"message": "role can be official"})
 		return
 	}
-	query:=`UPDATE users SET role=$1 WHERE id=$2`
+	query := `UPDATE users SET role=$1 WHERE id=$2`
 
-	result,err:=h.DB.Exec(query,newrole.Role,userID)
-	if err!=nil{
-		c.JSON(http.StatusInternalServerError,gin.H{"message":"failed to update role","error":err.Error()})
+	result, err := h.DB.Exec(query, newrole.Role, userID)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"message": "failed to update role", "error": err.Error()})
 		return
 	}
 
-	rowsAffected,err:=result.RowsAffected()
-	if err!=nil{
+	rowsAffected, err := result.RowsAffected()
+	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to check affected rows", "details": err.Error()})
 		return
 	}
@@ -132,9 +156,28 @@ func(h *UserHandler) UpdateUser(c *gin.Context){
 		return
 	}
 
-	c.JSON(http.StatusOK,gin.H{"message":"user role updated succesfuuly",
-								"userid":userID,
-								"role":newrole.Role,})
+	c.JSON(http.StatusOK, gin.H{"message": "user role updated succesfuuly",
+		"userid": userID,
+		"role":   newrole.Role,
+	})
 
+}
+func (h *UserHandler) GetAllOfficials(c *gin.Context) {
+
+	var officials []models.User
+	query := `SELECT id, name, email, role, created_at FROM users WHERE role = 'official'`
+
+	err := h.DB.Select(&officials, query)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{
+			"error":   "Failed to fetch officials",
+			"details": err.Error(),
+		})
+		return
+	}
+
+	c.JSON(http.StatusOK, gin.H{
+		"officials": officials,
+	})
 
 }

@@ -17,9 +17,34 @@ complaintAxios.interceptors.request.use((config) => {
 });
 
 export const complaintService = {
+    getCategories: async () => {
+        try {
+            const response = await complaintAxios.get(`${API_URL}/categories`);
+            return response.data;
+        } catch (error) {
+            throw error.response?.data || error.message;
+        }
+    },
+
     submitComplaint: async (complaintData) => {
         try {
-            const response = await complaintAxios.post(`${API_URL}/complaints`, complaintData);
+            const formData = new FormData();
+            formData.append('title', complaintData.title);
+            formData.append('description', complaintData.description);
+            formData.append('category', complaintData.category);
+            formData.append('latitude', complaintData.latitude);
+            formData.append('longitude', complaintData.longitude);
+            formData.append('is_public', complaintData.is_public);
+            
+            if (complaintData.evidence instanceof File) {
+                formData.append('evidence', complaintData.evidence);
+            }
+
+            const response = await complaintAxios.post(`${API_URL}/complaints`, formData, {
+                headers: {
+                    'Content-Type': 'multipart/form-data',
+                },
+            });
             return response.data;
         } catch (error) {
             throw error.response?.data || error.message;

@@ -28,19 +28,6 @@ import FilterListIcon from '@mui/icons-material/FilterList';
 import DashboardIcon from '@mui/icons-material/Dashboard';
 import LocationOnIcon from '@mui/icons-material/LocationOn';
 
-const categories = [
-  'Roads & Pavement',
-  'Water Supply & Leaks',
-  'Electricity & Streetlights',
-  'Waste & Sanitation',
-  'Public Transport & Bus Stops',
-  'Public Health Issues',
-  'Parks & Public Spaces',
-  'Illegal Construction/Encroachment',
-  'Stray Animal Nuisance',
-  'Others'
-];
-
 const districts = [
   'Ernakulam',
   'Thiruvananthapuram',
@@ -92,6 +79,7 @@ function OfficialDashboard() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
   const [complaints, setComplaints] = useState([]);
+  const [categories, setCategories] = useState([]);
   const [filters, setFilters] = useState({
     district: '',
     category: '',
@@ -114,9 +102,20 @@ function OfficialDashboard() {
     }
   }, [filters]); // Include filters in dependencies
 
+  const fetchCategories = useCallback(async () => {
+    try {
+      const response = await complaintService.getCategories();
+      setCategories(response.data || []);
+    } catch (err) {
+      console.error('Error fetching categories:', err);
+      // Don't set error for categories as it's not critical
+    }
+  }, []);
+
   useEffect(() => {
     fetchComplaints();
-  }, [fetchComplaints]);
+    fetchCategories();
+  }, [fetchComplaints, fetchCategories]);
 
   const handleFilterChange = (event) => {
     const { name, value } = event.target;
@@ -145,6 +144,11 @@ function OfficialDashboard() {
       default:
         return 'default';
     }
+  };
+
+  const getCategoryName = (categoryId) => {
+    const category = categories.find(cat => cat.id === categoryId);
+    return category ? category.name : `Category ${categoryId}`;
   };
 
   const handleLogout = () => {
@@ -253,8 +257,8 @@ function OfficialDashboard() {
                   >
                     <MenuItem value="">All Categories</MenuItem>
                     {categories.map(category => (
-                      <MenuItem key={category} value={category}>
-                        {category}
+                      <MenuItem key={category.id} value={category.id}>
+                        {category.name}
                       </MenuItem>
                     ))}
                   </Select>
@@ -325,7 +329,7 @@ function OfficialDashboard() {
                               {complaint.description.length > 100 ? '...' : ''}
                             </Typography>
                           </TableCell>
-                          <TableCell>{complaint.category}</TableCell>
+                          <TableCell>{getCategoryName(complaint.category)}</TableCell>
                           <TableCell>
                             <Chip
                               label={complaint.status || 'Pending'}

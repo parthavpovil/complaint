@@ -25,24 +25,36 @@ function UserDashboard() {
   const { user, logout } = useAuth();
   const navigate = useNavigate();
   const [complaints, setComplaints] = useState([]);
+  const [categories, setCategories] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
 
   useEffect(() => {
-    fetchComplaints();
+    fetchData();
   }, []);
 
-  const fetchComplaints = async () => {
+  const fetchData = async () => {
     try {
-      const response = await complaintService.getMyComplaints();
-      setComplaints(response.data || []);
+      // Fetch both complaints and categories in parallel
+      const [complaintsResponse, categoriesResponse] = await Promise.all([
+        complaintService.getMyComplaints(),
+        complaintService.getCategories()
+      ]);
+      
+      setComplaints(complaintsResponse.data || []);
+      setCategories(categoriesResponse.data || []);
       setError('');
     } catch (err) {
-      setError('Failed to fetch complaints. Please try again later.');
-      console.error('Error fetching complaints:', err);
+      setError('Failed to fetch data. Please try again later.');
+      console.error('Error fetching data:', err);
     } finally {
       setLoading(false);
     }
+  };
+
+  const getCategoryName = (categoryId) => {
+    const category = categories.find(cat => cat.id === categoryId);
+    return category ? category.name : `Category ${categoryId}`;
   };
 
   const handleLogout = () => {
@@ -141,7 +153,7 @@ function UserDashboard() {
                             {complaint.description.length > 100 ? '...' : ''}
                           </Typography>
                         </TableCell>
-                        <TableCell>{complaint.category}</TableCell>
+                        <TableCell>{getCategoryName(complaint.category)}</TableCell>
                         <TableCell>
                           <Chip
                             label={complaint.status || 'Pending'}
